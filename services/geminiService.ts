@@ -4,7 +4,7 @@ import { PIXEL_COLORS } from '../constants';
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-export const generateChallenges = async (theme: string = "party", players: string[] = []): Promise<Challenge[]> => {
+export const generateChallenges = async (theme: string = "party", players: string[] = [], count: number = 8): Promise<Challenge[]> => {
   try {
     let promptContext = "";
     if (players.length > 0) {
@@ -15,7 +15,7 @@ export const generateChallenges = async (theme: string = "party", players: strin
       `;
     }
 
-    const prompt = `Generate 8 short, fun, and creative drinking game challenges/tasks in Thai language for a "${theme}" theme. 
+    const prompt = `Generate ${count} short, fun, and creative drinking game challenges/tasks in Thai language for a "${theme}" theme. 
     ${promptContext}
     Keep them short (max 6 words). 
     Return strictly JSON format.`;

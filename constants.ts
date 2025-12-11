@@ -22,4 +22,4 @@ export const DEFAULT_CHALLENGES: Challenge[] = [
   { id: '8', text: 'เล่าเรื่องน่าอาย', color: PIXEL_COLORS[7], emoji: '😳' },
 ];
 
-export const SPIN_DURATION_MS = 4000; // 4 seconds spin
+export const SPIN_DURATION_MS = 4000;

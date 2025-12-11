@@ -12,6 +12,11 @@ export enum GameState {
   SHOW_RESULT = 'SHOW_RESULT',
 }
 
+export type AppMode = 'WHEEL' | 'BOTTLE';
+
+export type BottleType = 'BROWN' | 'GREEN';
+export type BottleGameMode = 'CLASSIC' | 'DARE';
+
 export interface GenerationConfig {
   intensity: 'fun' | 'spicy' | 'hardcore';
 }
