@@ -14,6 +14,9 @@ const App: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showResultModal, setShowResultModal] = useState(false);
   
+  // Physics trigger state
+  const [triggerSpin, setTriggerSpin] = useState(false);
+  
   // Player State
   const [players, setPlayers] = useState<string[]>([]);
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
@@ -48,11 +51,24 @@ const App: React.FC = () => {
     if (gameState !== GameState.IDLE) return;
     setGameState(GameState.SPINNING);
     setShowResultModal(false);
+    setTriggerSpin(true); // Trigger the physics impulse in WheelComponent
+    
+    // Reset trigger quickly so it can be triggered again later
+    setTimeout(() => setTriggerSpin(false), 100);
+  }, [gameState]);
+  
+  const handleManualSpinStart = useCallback(() => {
+    if (gameState === GameState.IDLE || gameState === GameState.SHOW_RESULT) {
+        setGameState(GameState.SPINNING);
+        setShowResultModal(false);
+    }
   }, [gameState]);
 
   const handleSpinComplete = useCallback((result: Challenge) => {
+    // This is called by WheelComponent when physics stop
     setLastResult(result);
     setGameState(GameState.SHOW_RESULT);
+    setTriggerSpin(false);
     
     setTimeout(() => {
       setShowResultModal(true);
@@ -89,8 +105,6 @@ const App: React.FC = () => {
           <span className="font-pixel text-3xl sm:text-4xl text-[#FFCC00] drop-shadow-[4px_4px_0_rgba(0,0,0,1)] text-stroke">
             PIXEL PARTY
           </span>
-          {/* Always render H1 content for SEO, but style it based on state if needed. 
-              Here we keep the subtitle always visible but styled retro. */}
           <span className={`font-thai text-white opacity-90 tracking-widest bg-black px-2 shadow-[2px_2px_0_rgba(255,255,255,0.2)] transition-all ${gameState === GameState.SETUP ? 'text-lg sm:text-xl' : 'text-sm sm:text-base'}`}>
             วงล้อแห่งความเมา
           </span>
@@ -124,10 +138,18 @@ const App: React.FC = () => {
              {/* CRT Scanline effect overlay */}
              <div className="pointer-events-none absolute -inset-4 rounded-full bg-gradient-to-b from-transparent to-black/10 z-0"></div>
              
+             {/* Hint text for manual spin */}
+             <div className="absolute -top-6 left-0 right-0 text-center pointer-events-none opacity-60 animate-pulse">
+                <span className="font-pixel text-[10px] text-white bg-black/50 px-2 rounded">
+                    👆 SWIPE TO SPIN
+                </span>
+             </div>
+
              <WheelComponent 
                items={challenges} 
-               isSpinning={gameState === GameState.SPINNING}
+               isSpinning={triggerSpin}
                onSpinComplete={handleSpinComplete}
+               onSpinStart={handleManualSpinStart}
              />
           </div>
 
@@ -136,8 +158,8 @@ const App: React.FC = () => {
             
             <RetroButton 
               onClick={handleSpinClick} 
-              disabled={gameState !== GameState.IDLE || isGenerating}
-              className="w-full text-lg sm:text-xl py-4 sm:py-6 animate-pulse hover:animate-none"
+              disabled={gameState === GameState.SPINNING || isGenerating}
+              className="w-full text-lg sm:text-xl py-4 sm:py-6 hover:scale-[1.02] active:scale-95 transition-transform"
             >
               {gameState === GameState.SPINNING ? 'SPINNING...' : 'หมุนเลย! (SPIN)'}
             </RetroButton>
@@ -147,14 +169,14 @@ const App: React.FC = () => {
                <button 
                   onClick={() => handleInGameRegenerate('fun')} 
                   className="bg-black/40 hover:bg-black/60 text-white font-pixel text-[10px] p-2 border border-white/20 rounded backdrop-blur-sm"
-                  disabled={isGenerating}
+                  disabled={isGenerating || gameState === GameState.SPINNING}
                >
                  🔄 Remix: Fun
                </button>
                <button 
                   onClick={() => handleInGameRegenerate('spicy')} 
                   className="bg-black/40 hover:bg-black/60 text-pink-300 font-pixel text-[10px] p-2 border border-white/20 rounded backdrop-blur-sm"
-                  disabled={isGenerating}
+                  disabled={isGenerating || gameState === GameState.SPINNING}
                >
                  🔄 Remix: 18+
                </button>
