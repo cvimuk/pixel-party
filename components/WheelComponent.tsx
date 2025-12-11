@@ -24,8 +24,12 @@ const WheelComponent: React.FC<WheelComponentProps> = ({
   const lastPointerPos = useRef({ x: 0, y: 0 });
   const lastTimestamp = useRef(0);
   const animationFrameId = useRef<number>(0);
-  const friction = 0.985; // Air resistance (0.99 = slippery, 0.90 = heavy)
-  const stopThreshold = 0.05; // Speed to snap/stop
+  
+  // --- PHYSICS TUNING ---
+  // Higher = Slipperier (0.999 is ice, 0.90 is mud). 0.994 gives a nice long spin.
+  const friction = 0.994; 
+  // Speed below this snaps to stop
+  const stopThreshold = 0.05; 
 
   // Helper to get angle from center
   const getAngle = (clientX: number, clientY: number) => {
@@ -94,7 +98,8 @@ const WheelComponent: React.FC<WheelComponentProps> = ({
   useEffect(() => {
     if (triggerSpin && Math.abs(velocity.current) < 1) {
       // "Kick" the wheel with random high velocity
-      const randomSpeed = 25 + Math.random() * 15; // Speed between 25-40
+      // Boosted for the new friction setting
+      const randomSpeed = 40 + Math.random() * 30; // Speed between 40-70
       velocity.current = randomSpeed;
       lastTimestamp.current = performance.now();
       cancelAnimationFrame(animationFrameId.current);
@@ -132,12 +137,8 @@ const WheelComponent: React.FC<WheelComponentProps> = ({
     
     // Calculate instantaneous velocity for "throw"
     const now = performance.now();
-    const dt = now - lastTimestamp.current;
-    if (dt > 0) {
-       // Simple moving average for velocity to smooth out jitter
-       const newVel = delta; // Velocity per frame-ish
-       velocity.current = newVel; 
-    }
+    // Use the raw delta as base velocity
+    velocity.current = delta;
 
     lastPointerPos.current = { x: e.clientX, y: e.clientY };
     lastTimestamp.current = now;
@@ -152,11 +153,17 @@ const WheelComponent: React.FC<WheelComponentProps> = ({
     if (!isDragging.current) return;
     isDragging.current = false;
     
-    // If velocity is high enough, let it spin. If too low, it's just a drag.
-    // Boost the throw velocity slightly to feel better
-    if (Math.abs(velocity.current) > 10) {
-        velocity.current = Math.min(Math.max(velocity.current, -45), 45); // Cap max speed
-    } 
+    // Multiplier to make it feel "lighter" and spin faster from a small flick
+    const THROW_MULTIPLIER = 2.5;
+    
+    // Apply boost
+    if (Math.abs(velocity.current) > 0.5) {
+        velocity.current = velocity.current * THROW_MULTIPLIER;
+        
+        // Cap max speed (increased to 100 for high speed blur)
+        const MAX_SPEED = 100;
+        velocity.current = Math.min(Math.max(velocity.current, -MAX_SPEED), MAX_SPEED);
+    }
 
     animationFrameId.current = requestAnimationFrame(animate);
   };
