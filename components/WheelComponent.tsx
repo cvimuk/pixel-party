@@ -84,7 +84,8 @@ const WheelComponent: React.FC<WheelComponentProps> = ({ items, isSpinning, onSp
         className="w-full h-full rounded-full border-4 border-white shadow-[0_0_0_8px_black]"
         style={{
           transform: `rotate(${rotation}deg)`,
-          transition: isSpinning ? `transform ${SPIN_DURATION_MS}ms cubic-bezier(0.2, 0, 0.2, 1)` : 'none',
+          // Cubic-bezier(0.1, 0, 0.1, 1) provides a fast start and a very smooth, long deceleration (realistic wheel physics)
+          transition: isSpinning ? `transform ${SPIN_DURATION_MS}ms cubic-bezier(0.1, 0, 0.1, 1)` : 'none',
         }}
       >
         <svg viewBox="0 0 300 300" className="w-full h-full rounded-full">
